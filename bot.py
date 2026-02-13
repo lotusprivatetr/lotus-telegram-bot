@@ -1,4 +1,6 @@
 import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 logging.basicConfig(level=logging.INFO)
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
@@ -39,10 +41,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     if not TOKEN:
         raise RuntimeError("BOT_TOKEN bulunamadı. Terminalde export BOT_TOKEN=... yapmalısın.")
+    threading.Thread(target=run_web_server, daemon=True).start()
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.run_polling()
 
 if __name__ == "__main__":
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running")
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
+    server.serve_forever()
     main()
 
