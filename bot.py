@@ -1,13 +1,11 @@
 import os
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import logging
-logging.basicConfig(level=logging.INFO)
+
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-TOKEN = os.getenv("BOT_TOKEN")
-
+# ---- LINKLERİN ----
 LINKS = [
     ("🌐 WEBSITE", "https://bio.site/lotusprivate.com"),
     ("🌐 SPONSORLAR", "https://bio.site/lotussiteler.com"),
@@ -15,50 +13,41 @@ LINKS = [
     ("📣 ÇEKİLİŞ KANALI", "https://t.me/lotusprivatelive"),
 ]
 
-WELCOME_TEXT = (
-    "✨ *Lotus Private'a Hoş Geldin!* ✨\n\n"
-    "Aşağıdaki bağlantılardan web sitelerimize ve Telegram kanallarımıza ulaşabilirsin 👇\n\n"
-    "🌐 *Web Sitelerimiz*\n"
-    "• Lotus Private\n"
-    "• Sponsorlar\n\n"
-    "📣 *Telegram Kanallarımız*\n"
-    "• Ana Kanal\n"
-    "• Çekiliş Kanalı\n\n"
-    "💎 Keyifli vakit geçirmen dileğiyle."
-)
-
+WELCOME_TEXT = "Merhaba! Aşağıdaki bağlantılardan web sitelerimize ve kanallarımıza ulaşabilirsin 👇"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton(name, url=url)] for name, url in LINKS]
     await update.message.reply_text(
         WELCOME_TEXT,
         reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode="Markdown",
-        disable_web_page_preview=True,
+        disable_web_page_preview=True
     )
 
+# ---- RENDER için mini web server (PORT taraması geçsin diye) ----
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b"Bot is running")
+        self.wfile.write(b"OK")
 
 def run_web_server():
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.getenv("PORT", "10000"))  # Render PORT verir
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
 
 def main():
-token = os.getenv("BOT_TOKEN")
-    if not TOKEN:
-        raise RuntimeError("BOT_TOKEN bulunamadı. Render/Terminal env var olarak eklemelisin.")
+    token = os.getenv("BOT_TOKEN")
+    if not token:
+        raise RuntimeError("BOT_TOKEN bulunamadı. Render > Environment'da BOT_TOKEN eklemelisin.")
 
+    # Web server ayrı thread
     threading.Thread(target=run_web_server, daemon=True).start()
 
-    app = Application.builder().token(TOKEN).build()
+    app = Application.builder().token(token).build()
     app.add_handler(CommandHandler("start", start))
+
+    # Botu çalıştır
     app.run_polling()
 
 if __name__ == "__main__":
     main()
-
