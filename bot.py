@@ -49,6 +49,7 @@ def run_web_server():
     server.serve_forever()
 
 def main():
+token = os.getenv("BOT_TOKEN")
     if not TOKEN:
         raise RuntimeError("BOT_TOKEN bulunamadı. Render/Terminal env var olarak eklemelisin.")
 
