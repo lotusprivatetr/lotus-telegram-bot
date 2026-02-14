@@ -7,7 +7,6 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 TOKEN = os.getenv("BOT_TOKEN")
-print("TOKEN:", TOKEN)
 
 LINKS = [
     ("🌐 WEBSITE", "https://bio.site/lotusprivate.com"),
