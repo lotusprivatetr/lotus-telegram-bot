@@ -38,15 +38,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         disable_web_page_preview=True,
     )
 
-def main():
-    if not TOKEN:
-        raise RuntimeError("BOT_TOKEN bulunamadı. Terminalde export BOT_TOKEN=... yapmalısın.")
-    threading.Thread(target=run_web_server, daemon=True).start()
-    app = Application.builder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.run_polling()
-
-if __name__ == "__main__":
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -57,5 +48,17 @@ def run_web_server():
     port = int(os.environ.get("PORT", 10000))
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
+
+def main():
+    if not TOKEN:
+        raise RuntimeError("BOT_TOKEN bulunamadı. Render/Terminal env var olarak eklemelisin.")
+
+    threading.Thread(target=run_web_server, daemon=True).start()
+
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.run_polling()
+
+if __name__ == "__main__":
     main()
 
